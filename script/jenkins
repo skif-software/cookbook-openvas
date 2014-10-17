@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -e
+set +x
+
+COOKBOOK=`echo $JOB_NAME | sed 's/_cookbook//'`
+COOKBOOK_PATH="/var/lib/jenkins/workspace/$JOB_NAME"
+CHEF_GEMS_PATH="/var/lib/jenkins/chefgems"
+
+
+# Set the cookbook path
+echo -n "Setting the cookbook path... "
+  if ! [ -d ".chef" ]
+   then 
+    mkdir .chef
+  fi
+  cat /var/lib/jenkins/.chef/knife.rb |sed -e "/cookbook_path.*$/ccookbook_path            ['$COOKBOOK_PATH']" > .chef/knife.rb
+  cat /var/lib/jenkins/.chef/hosted_chef-knife.rb |sed -e "/cookbook_path.*$/ccookbook_path            ['$COOKBOOK_PATH']" > .chef/hosted_chef-knife.rb
+echo "Done!"
+
+# Submodules
+echo -n 'Updating submodules... '
+  git submodule update --init 2>&1 > /dev/null
+echo 'Done!'
+
+# Bundler: install all dependencies
+echo -n 'Bundling... '
+  bundle install --quiet --deployment --path $CHEF_GEMS_PATH
+echo 'Done!'
+
+# echo -n 'Installing berkshelf cookbooks... '
+#   bundle exec berks install --path vendor/cookbooks
+# echo 'Done!'
+
+echo 'Running foodcritic'
+bundle exec foodcritic ./
+
+echo 'Running knife cookbook test'
+bundle exec knife cookbook test $JOB_NAME -o ../
