@@ -1,6 +1,8 @@
 ---
 driver:
   name: vagrant
+  network:
+  - ["forwarded_port", {guest: 9392, host: 9392}]
 
 provisioner:
   name: chef_solo
@@ -10,7 +12,11 @@ platforms:
 #  - name: centos-6.4
 
 suites:
-  - name: default
+  - name: openvas-client
     run_list:
-      - recipe[openvas::source]
+      - recipe[openvas::default]
     attributes:
+  - name: openvas-server
+    run_list:
+      - recipe[openvas::nmap]
+      - recipe[openvas::server]
