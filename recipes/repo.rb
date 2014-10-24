@@ -17,14 +17,25 @@ if node['platform'] == 'debian' or node['platform'] == 'ubuntu' or node['platfor
     action :install
   end
 
-# Add OpenVAS PPA. Get key from keyserver
-apt_repository "openvas-repo" do
-  uri "http://download.opensuse.org/repositories/security:/OpenVAS:/STABLE:/v4/xUbuntu_11.10/ ./"
-  keyserver "hkp://keys.gnupg.net"
-  key "BED1E87979EAFD54"
-  action :add
-  not_if "apt-key list |grep -i opscode"
-  end
+ # Add OpenVAS OBS repo. Get key from keyserver
+ apt_repository "openvas-repo" do
+   uri "http://download.opensuse.org/repositories/security:/OpenVAS:/STABLE:/v4/xUbuntu_11.10/ ./"
+   keyserver "hkp://keys.gnupg.net"
+   key "BED1E87979EAFD54"
+   action :add
+   only_if { node['platform'] == 'debian' }
+   end
+
+  # Add OpenVAS ubuntu PPA. Get key from keyserver
+  apt_repository "openvas-repo" do
+    uri "http://ppa.launchpad.net/openvas/openvas6/ubuntu"
+    distribution node['lsb']['codename']
+    components ['main']
+    keyserver "hkp://keyserver.ubuntu.com"
+    key "b8942c54a667d61a"
+    action :add
+    only_if { node['platform'] == 'ubuntu' || node['platform'] == 'linuxmint' }
+    end
 
 end
 

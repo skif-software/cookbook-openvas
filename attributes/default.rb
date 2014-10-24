@@ -16,7 +16,7 @@
 # limitations under the License.
 
 # Set yes to append CRON job to crontab to update NVTs
-default['openvas']['enable_nvt_updates_from_cron'] = 'no'
+default['openvas']['enable_nvt_updates_from_cron'] = "no"
 
 # Set Perl location. Not used if ['openvas']['enable_nvt_updates_from_cron'] = 'no'
 default['openvas']['which_perl'] = "/usr/bin/perl"
@@ -25,10 +25,10 @@ default['openvas']['which_perl'] = "/usr/bin/perl"
 default['openvas']['gsad_port'] = '9392'
 
 # Set to yes to enable Greenbone scan configs
-default['openvas']['enable_greenbone_scan_configs'] = 'no'
+default['openvas']['enable_greenbone_scan_configs'] = "no"
 
 # Set to no to enable NVT signature check.
-default['openvas']['nasl_no_signature_check'] = 'yes'
+default['openvas']['nasl_no_signature_check'] = "yes"
 
 # Target to create ( e.g. Server you want to scan )
 default['openvas']['target_to_create'] = 'scanme.example.tld'

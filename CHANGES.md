@@ -1,3 +1,8 @@
+Changes for OpenVAS cookbook version 1.0.0
+===========================================
+* Updates to work with openvas 6 on Ubuntu 12.04
+
+
 Changes for OpenVAS cookbook version 0.0.53
 ===========================================
 * Add source.rb. Installs latest vis source.

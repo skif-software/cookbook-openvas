@@ -9,6 +9,7 @@
 # Install OpenVAS PPA repo & client
 include_recipe "openvas::default"
 include_recipe "openvas::client"
+include_recipe "openvas::nmap"
 include_recipe "openvas::openvasknife"
 
 # Install required Ruby gems
@@ -20,30 +21,43 @@ end
 
 # Install OpenVAS server packages
 case node['platform']
-
-  when "ubuntu","debian","linuxmint"
-    %w{ coreutils texlive-latex-base texlive-latex-extra texlive-latex-recommended htmldoc nsis
-	openvas-manager openvas-scanner openvas-administrator sqlite3 xsltproc wget alien nikto }.each do |pkg|
+when "ubuntu","debian","linuxmint"
+  %w{ coreutils texlive-latex-base texlive-latex-extra texlive-latex-recommended htmldoc nsis
+	openvas-manager openvas-scanner openvas-administrator sqlite3 xsltproc wget alien nikto gnupg }.each do |pkg|
     package pkg
+  end  
+  # drop files in place missing from openvas-manager deb/ubuntu packages
+  directory "/usr/share/openvas/cert" do
+    mode  "00755"
+    owner "root"
+    group "root"
+    recursive true
   end
 
-# Install OpenVAS server packages
-  when "redhat","centos","scientific","amazon"
-
-    %w{ nikto htmldoc tetex tetex-dvips tetex-fonts tetex-latex tetex-tex4ht
-        passivetex }.each do |pkg|
-    package pkg
+  %w{ cert_db_init.sql dfn_cert_getbyname.xsl dfn_cert_update.xsl }.each do |omfile|
+    cookbook_file omfile do
+      owner "root"
+      group "root"
+      mode  "00644"
+      path  "/usr/share/openvas/cert/#{omfile}"
+      source "openvas-manager/#{omfile}"
     end
-    
+  end
+
+when "redhat","centos","scientific","amazon"
+  %w{ nikto htmldoc tetex tetex-dvips tetex-fonts tetex-latex tetex-tex4ht
+        passivetex }.each do |pkg|
+      package pkg
+  end  
     # Install Nmap version 6
     include_recipe "openvas::nmap"
 
     # Install Alien
-    execute "install-alien-on-redhat" do
-      command "rpm -Uvh ftp://ftp.pbone.net/mirror/ftp.sourceforge.net/pub/sourceforge/p/po/postinstaller/data/alien-8.85-2.noarch.rpm"
-      action :run
-      not_if "rpm -qa |grep alien"
-    end
+  execute "install-alien-on-redhat" do
+    command "rpm -Uvh ftp://ftp.pbone.net/mirror/ftp.sourceforge.net/pub/sourceforge/p/po/postinstaller/data/alien-8.85-2.noarch.rpm"
+    action :run
+    not_if "rpm -qa |grep alien"
+  end
 
     # Implement workaround for OpenVAS v5 bug
       execute "install-openvas-v4-x86_64" do
@@ -108,10 +122,63 @@ directory "/var/lib/openvas/plugins" do
   group "root"
   mode "0755"
   action :create
-  not_if "test -d /var/lib/openvas/plugins" 
 end
 
-# Update OpenVAS network vulnerability tests 
+# Install and sign OpenVAS Transfer Integrity Certificate to support signed NVTs and reports
+Chef::Log.warn("node.openvas.nasl_no_signature = #{node['openvas']['nasl_no_signature_check']}")
+Chef::Log.warn("is node.openvas.nasl_no_signature a string? #{node['openvas']['nasl_no_signature_check'].is_a? String}")
+
+directory "/etc/openvas/gnupg" do
+  owner "root"
+  group "root"
+  mode "0700"
+  action :create
+  only_if { node['openvas']['nasl_no_signature_check'] == "no" }
+end
+
+# generate local signing key
+template node['openvas']['gpg']['batch']['config'] do
+  source "gpg_batch_config.erb"
+  mode  "0440"
+  owner "root"
+  group "root"
+  variables({
+     :key_type => node['openvas']['gpg']['key']['type'],
+     :key_length => node['openvas']['gpg']['key']['length'],
+     :name_real => node['openvas']['gpg']['name']['real'],
+     :name_comment => node['openvas']['gpg']['name']['comment'],
+     :name_email => node['openvas']['gpg']['name']['email'],
+     :expire_date => node['openvas']['gpg']['expire']['date']
+  })
+  only_if { node['openvas']['nasl_no_signature_check'] == "no" }
+end
+
+package "rng-tools" do
+  only_if { node['openvas']['nasl_no_signature_check'] == "no" }
+end
+
+# gotta make sure rngd is service is disabled and stopped, otherwise we can't start it below
+
+execute "seed-random-number-generator" do
+  command "rngd -r /dev/urandom"
+  only_if { node['openvas']['nasl_no_signature_check'] == "no" }
+end
+
+execute "generate-openvas-gpg-key" do
+  command "gpg --homedir=/etc/openvas/gnupg --gen-key --batch #{node['openvas']['gpg']['batch']['config']}"
+    only_if { node['openvas']['nasl_no_signature_check'] == "no" }
+    only_if "gpg --list-keys --homedir=/etc/openvas/gnupg | grep #{node['openvas']['gpg']['name']['comment']}"
+end
+
+# add Transfer Integrity Certificate
+#   only_if { node['openvas']['nasl_no_signature_check'] == "no" }
+
+# Trust Transfer Integrity Certificate
+#   only_if { node['openvas']['nasl_no_signature_check'] == "no" }
+
+
+# Initial update OpenVAS network vulnerability tests
+#  this takes a long time so subsequent updats done by a daily cron job
 execute "openvas-nvt-sync" do
   command "openvas-nvt-sync; sleep 5m"
   action :run
@@ -133,6 +200,34 @@ execute "openvassd" do
   not_if "netstat -nlp |grep openvassd"
 end
 
+# Initial sync of the SCAP data
+directory "/var/lib/openvas/scap-data/private" do
+  owner "root"
+  group "root"
+  mode "0755"
+  recursive true
+  action :create
+end
+
+  # openvas-scapdata-sync is broken in version 4.x of openvas-manager,
+  # so replace the script if we have a broken one
+  # see http://osdir.com/ml/openvas-security-network/2013-10/msg00033.html
+cookbook_file "/usr/sbin/openvas-scapdata-sync" do
+  owner "root"
+  group "root"
+  mode  "00755"
+  source "openvas-manager/openvas-scapdata-sync.4fixed"
+  only_if "openvas-scapdata-sync --version | grep ^4"
+end
+
+ # doesn't seem to take more than 15 sec, so maybe we can forgo the cron job and just let
+ #  chef-client runs do this every time?
+execute "openvas-scapdata-sync" do
+  command "openvas-scapdata-sync"
+  not_if { ::File.exist?("/var/lib/openvas/scap-data/scap.db") } 
+end
+ 
+
 # Rebuild openvasmd-rebuild
 execute "openvasmd-rebuild" do
   command "openvasmd --rebuild"
@@ -140,6 +235,9 @@ execute "openvasmd-rebuild" do
   action :run
   not_if "test -d /var/lib/openvas/users/admin"
 end
+
+# Initial sync of CERT db. This is quick, so we can let chef do this every run.
+execute "openvas-certdata-sync"
 
 # Execute killall openvassd
 execute "killall-openvassd" do
@@ -159,7 +257,7 @@ end
 
 # Enable & start openvas-scanner service
 service "openvas-scanner" do
-  supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
+  supports :start => true, :stop => true, :status => true, :restart => true
   action [ :enable, :start ]
 end
 
@@ -175,11 +273,6 @@ service "openvas-administrator" do
   action [ :enable, :start ]
 end
 
-# Enable & start greenbone-security-assistant service
-service "gsad" do
-  supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
-  action [ :enable, :start ]  
-end
 
 # Generate random password, assign to admin openvas account
 # and write password to /tmp/openvas_admin_pass.txt.
@@ -220,7 +313,7 @@ template "/etc/openvas/gsad_log.conf" do
   group "root"
   mode "0644"
   not_if "test -f /etc/openvas/gsad_log.conf"
-  notifies :reload, "service[gsad]", :immediately
+  notifies :reload, "service[greenbone-security-assistant]", :immediately
 end
 
 # Add template for /etc/openvas/openvasad_log.conf
@@ -247,7 +340,10 @@ template "/etc/openvas/openvassd.conf" do
   owner "root"
   group "root"
   mode "0644"
-  notifies :reload, "service[openvas-scanner]", :immediately
+  notifies :restart, "service[openvas-scanner]", :immediately
+  variables ({
+    :nasl_no_signature_check => node['openvas']['nasl_no_signature_check']
+  })
 end
 
 # Add template for /etc/openvas/openvassd.rules
@@ -256,13 +352,12 @@ template "/etc/openvas/openvassd.rules" do
   owner "root"
   group "root"
   mode "0644"
-  notifies :reload, "service[openvas-scanner]", :immediately
+  notifies :restart, "service[openvas-scanner]", :immediately
 end
 
-# Check if Greenbone scan configs are enable
+# Check if Greenbone scan configs are enabled
 if node['openvas']['enable_greenbone_scan_configs'] == "yes"
 
   # Include Greenbone scan configs
   include_recipe "openvas::greenbone_scan_configs"
-
 end

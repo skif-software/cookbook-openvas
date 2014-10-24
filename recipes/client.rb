@@ -13,7 +13,7 @@ case node['platform']
     include_recipe "openvas::repo"
 
     # Add required packages to array 
-    %w{ openvas-client greenbone-security-assistant gsd openvas-cli }.each do |pkg|
+    %w{ openvas-client greenbone-security-assistant openvas-cli }.each do |pkg|
     package pkg
 
     end    
@@ -23,4 +23,19 @@ case node['platform']
     # Install OpenVAS PPA repo
     include_recipe "openvas::repo"
 
+end
+
+# Manage greenbone-security-assistant
+template "/etc/default/greenbone-security-assistant" do
+  source "greenbone-security-assistant.erb"
+  owner "root"
+  group "root"
+  mode  "0644"
+  notifies :restart, "service[greenbone-security-assistant]"
+end
+
+# Enable & start greenbone-security-assistant service
+service "greenbone-security-assistant" do
+  supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
+  action [ :enable, :start ]  
 end

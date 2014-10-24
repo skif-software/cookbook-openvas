@@ -2,7 +2,7 @@
 driver:
   name: vagrant
   network:
-  - ["forwarded_port", {guest: 9392, host: 9392}]
+  - ["forwarded_port", {guest: 9392, host: 9392, auto_correct: true}]
 
 provisioner:
   name: chef_solo
@@ -18,5 +18,13 @@ suites:
     attributes:
   - name: openvas-server
     run_list:
-      - recipe[openvas::nmap]
       - recipe[openvas::server]
+    attributes:
+      openvas:
+        enable_nvt_updates_from_cron: "yes"
+        enable_greenbone_scan_configs: "yes"
+        nasl_no_signature_check: "yes"
+  - name: openvas-source
+    run_list:
+      - recipe[openvas::source]
+    attributes:
