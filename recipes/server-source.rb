@@ -11,7 +11,7 @@
 
 # install development libraries
 # do an apt-get update first
-%w{ rsync wget curl pkg-config libssh-dev libgnutls-dev libglib2.0-dev libpcap-dev libgpgme11-dev uuid-dev bison libksba-dev cmake libldap-2.4-2 }.each |devpkg| do
+%w{ rsync wget curl pkg-config libssh-dev libgnutls-dev libglib2.0-dev libpcap-dev libgpgme11-dev uuid-dev bison libksba-dev cmake libldap-2.4-2 }.each do |devpkg|
   package devpkg
 end
 
