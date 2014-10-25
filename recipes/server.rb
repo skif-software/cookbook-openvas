@@ -115,6 +115,7 @@ execute "openvas-mkcert" do
   command "openvas-mkcert -q"
   action :run
   not_if "test -e /var/lib/openvas/CA/cacert.pem"
+  notifies :start, "service[greenbone-security-assistant]"
 end
 
 # Create /var/lib/openvas/plugins
