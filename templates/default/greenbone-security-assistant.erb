@@ -11,7 +11,7 @@ GSA_ADDRESS=<%= node['ipaddress'] %>
 # The port the Greenbone Security Assistant will listen on.
 #
 
-GSA_PORT=9392
+GSA_PORT=<%= node['openvas']['gsad_port'] %>
 
 #
 # The file to use as private key for HTTPS
