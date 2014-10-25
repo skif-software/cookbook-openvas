@@ -35,7 +35,9 @@ template "/etc/default/greenbone-security-assistant" do
 end
 
 # Enable & start greenbone-security-assistant service
+# too soon to start this. we actually need openvas-mkcert in server recipe to create the
+# cert and key first
 service "greenbone-security-assistant" do
   supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
-  action [ :enable, :start ]  
+  action [ :enable ]
 end
