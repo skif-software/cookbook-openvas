@@ -11,6 +11,7 @@ include_recipe "openvas::default"
 include_recipe "openvas::client"
 include_recipe "openvas::nmap"
 include_recipe "openvas::openvasknife"
+include_recipe "ubuntu"
 
 # Install required Ruby gems
 %w{ openvas-omp }.each do |gempkg|
