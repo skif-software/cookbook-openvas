@@ -314,7 +314,7 @@ template "/etc/openvas/gsad_log.conf" do
   group "root"
   mode "0644"
   not_if "test -f /etc/openvas/gsad_log.conf"
-  notifies :reload, "service[greenbone-security-assistant]", :immediately
+  notifies :restart, "service[greenbone-security-assistant]"
 end
 
 # Add template for /etc/openvas/openvasad_log.conf
