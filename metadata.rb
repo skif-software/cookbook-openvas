@@ -4,7 +4,7 @@ license          "Apache 2.0"
 description      "Installs/Configures openvas"
 name             "openvas"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version          "1.0.0"
+version          "1.0.1"
 recipe           "openvas", "Default recipe. Does nothing by default."
 recipe           "openvas::client", "Installs repo & the OpenVAS client."
 recipe           "openvas::repo", "Installs the OpenVAS YUM repo."

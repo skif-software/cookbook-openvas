@@ -1,3 +1,7 @@
+Changes for OpenVAS cookbook version 1.0.1
+===========================================
+* Install openvas-check-setup from package, instead of from cookbook file.
+
 Changes for OpenVAS cookbook version 1.0.0
 ===========================================
 * Updates to work with openvas 6 on Ubuntu 12.04

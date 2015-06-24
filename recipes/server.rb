@@ -24,9 +24,9 @@ end
 case node['platform']
 when "ubuntu","debian","linuxmint"
   %w{ coreutils texlive-latex-base texlive-latex-extra texlive-latex-recommended htmldoc nsis
-	openvas-manager openvas-scanner openvas-administrator sqlite3 xsltproc wget alien nikto gnupg }.each do |pkg|
+	openvas-manager openvas-scanner openvas-administrator openvas-check-setup sqlite3 xsltproc wget alien nikto gnupg }.each do |pkg|
     package pkg
-  end  
+  end
   # drop files in place missing from openvas-manager deb/ubuntu packages
   directory "/usr/share/openvas/cert" do
     mode  "00755"
@@ -49,7 +49,7 @@ when "redhat","centos","scientific","amazon"
   %w{ nikto htmldoc tetex tetex-dvips tetex-fonts tetex-latex tetex-tex4ht
         passivetex }.each do |pkg|
       package pkg
-  end  
+  end
     # Install Nmap version 6
     include_recipe "openvas::nmap"
 
@@ -77,7 +77,7 @@ when "redhat","centos","scientific","amazon"
         only_if "uname -a |grep x86_64"
         not_if "rpm -qa |grep openvas"
       end
-    
+
       # Implement workaround for package libmicrohttpd not being compiled
       # with SSL support on Redhat.
       script "start-gsad-service" do
@@ -89,13 +89,13 @@ when "redhat","centos","scientific","amazon"
         EOH
         not_if "ps aux |grep gsad |egrep -v grep"
       end
- 
-  end 
+
+  end
 
     # A bug in OpenVAS v5 causes it to fail to start on redhat.
-    # Until fixed upstream, redhat users will get OpenVAS v4 instead. 
+    # Until fixed upstream, redhat users will get OpenVAS v4 instead.
     #%w{ openvas }.each do |pkg|
-    #package pkg 
+    #package pkg
   #end
   #execute "install-openvas-redhat" do
   #command "yum makecache; yum -y install openvas"
@@ -104,11 +104,6 @@ when "redhat","centos","scientific","amazon"
   #end
 
 #end
-
-cookbook_file "/usr/local/bin/openvas-check-setup" do
-  source "openvas-check-setup"
-  mode "0744"
-end
 
 # Create OpenVAS certificate
 execute "openvas-mkcert" do
@@ -226,9 +221,9 @@ end
  #  chef-client runs do this every time?
 execute "openvas-scapdata-sync" do
   command "openvas-scapdata-sync"
-  not_if { ::File.exist?("/var/lib/openvas/scap-data/scap.db") } 
+  not_if { ::File.exist?("/var/lib/openvas/scap-data/scap.db") }
 end
- 
+
 
 # Rebuild openvasmd-rebuild
 execute "openvasmd-rebuild" do
@@ -281,7 +276,7 @@ end
 ruby_block "gen_rand_openvas_pass" do
   block do
     def newpass( len )
-      
+
       # Set list of chars to include in pseudo-random password
       chars = ("a".."z").to_a + ("A".."Z").to_a + ("0".."9").to_a
       newpass = ""
