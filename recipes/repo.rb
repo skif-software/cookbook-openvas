@@ -18,7 +18,7 @@ if node['platform'] == 'debian' or node['platform'] == 'ubuntu' or node['platfor
   end
 
  # Add OpenVAS OBS repo. Get key from keyserver
- apt_repository "openvas-repo" do
+ apt_repository "openvas-repo-debian" do
    uri node["openvas"]["openvas-repo-uri"] != '' ? node["openvas"]["openvas-repo-uri"] : "http://download.opensuse.org/repositories/security:/OpenVAS:/STABLE:/v4/xUbuntu_11.10/ ./"
    keyserver node["openvas"]["openvas-repo-keyserver"] != '' ? node["openvas"]["openvas-repo-keyserver"] : "hkp://keys.gnupg.net"
    key node["openvas"]["openvas-repo-key"] != '' ? node["openvas"]["openvas-repo-key"] : "BED1E87979EAFD54"
@@ -27,7 +27,7 @@ if node['platform'] == 'debian' or node['platform'] == 'ubuntu' or node['platfor
    end
 
   # Add OpenVAS ubuntu PPA. Get key from keyserver
-  apt_repository "openvas-repo" do
+  apt_repository "openvas-repo-other" do
     uri node["openvas"]["openvas-repo-uri"] != '' ? node["openvas"]["openvas-repo-uri"] : "http://ppa.launchpad.net/openvas/openvas6/ubuntu"
     distribution node['lsb']['codename']
     components ['main']
