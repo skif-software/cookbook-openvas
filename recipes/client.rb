@@ -13,8 +13,7 @@ case node['platform']
     include_recipe "openvas::repo"
 
     # Add required packages to array
-    packages = node["openvas"]["openvas-packages"] != nil ? node["openvas"]["openvas-packages"] : %w{ openvas-client greenbone-security-assistant openvas-cli }
-    # %w{ openvas-cli greenbone-security-assistant openvas-cli }.each do |pkg|
+    packages = node["openvas"]["openvas-packages"] != nil ? node["openvas"]["openvas-packages"] : %w{ openvas-client openvas-gsa openvas-cli }
     packages.each do |pkg|
     package pkg
 
@@ -28,18 +27,18 @@ case node['platform']
 end
 
 # Manage greenbone-security-assistant
-template "/etc/default/greenbone-security-assistant" do
+template "/etc/default/openvas-gsa" do
   source "greenbone-security-assistant.erb"
   owner "root"
   group "root"
   mode  "0644"
-  notifies :restart, "service[greenbone-security-assistant]"
+  notifies :restart, "service[openvas-gsa]"
 end
 
 # Enable & start greenbone-security-assistant service
 # too soon to start this. we actually need openvas-mkcert in server recipe to create the
 # cert and key first
-service "greenbone-security-assistant" do
+service "openvas-gsa" do
   supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
   action [ :enable ]
 end
