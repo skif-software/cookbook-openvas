@@ -65,3 +65,7 @@ default['openvas']['gsa_url'] = 'http://wald.intevation.org/frs/download.php/173
 
 # CLI ( Command Line Interface to install ) download URL.
 default['openvas']['gsa_url'] = 'http://wald.intevation.org/frs/download.php/1633/openvas-cli-1.3.0.tar.gz'
+
+default['openvas']['openvas-repo-uri'] = ''
+default['openvas']['openvas-repo-keyserver'] = ''
+default['openvas']['openvas-repo-key'] = ''
