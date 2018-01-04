@@ -12,8 +12,10 @@ case node['platform']
     # Install OpenVAS PPA repo
     include_recipe "openvas::repo"
 
-    # Add required packages to array 
-    %w{ openvas-client greenbone-security-assistant openvas-cli }.each do |pkg|
+    # Add required packages to array
+    packages = node["openvas"]["openvas-packages"] != nil ? node["openvas"]["openvas-packages"] : %w{ openvas-client greenbone-security-assistant openvas-cli }
+    # %w{ openvas-cli greenbone-security-assistant openvas-cli }.each do |pkg|
+    packages.each do |pkg|
     package pkg
 
     end    
