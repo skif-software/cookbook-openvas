@@ -17,7 +17,7 @@ case node['platform']
     packages.each do |pkg|
     package pkg
 
-    end    
+    end
 
   when "redhat","centos","scientific","amazon"
 
@@ -39,6 +39,21 @@ end
 # too soon to start this. we actually need openvas-mkcert in server recipe to create the
 # cert and key first
 service "openvas-gsa" do
+  supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
+  action [ :enable ]
+end
+
+# Manage openvas-manager
+template "/etc/default/openvas-manager" do
+  source "openvas-manager.erb"
+  owner "root"
+  group "root"
+  mode  "0644"
+  notifies :restart, "service[openvas-manager]"
+end
+
+# Enable & start openvas-manager service
+service "openvas-manager" do
   supports :start => true, :stop => true, :status => true, :restart => true, :reload => true
   action [ :enable ]
 end

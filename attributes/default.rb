@@ -24,6 +24,12 @@ default['openvas']['which_perl'] = "/usr/bin/perl"
 # Set TCP port for the gsad service
 default['openvas']['gsad_port'] = '9392'
 
+# Set TCP port for the openvas-manager service
+default['openvas']['gsad_port'] = '9390'
+
+# Set ipaddress for the openvas-manager service listen to
+default['openvas']['manager_ipaddress'] = '127.0.0.1'
+
 # Set to yes to enable Greenbone scan configs
 default['openvas']['enable_greenbone_scan_configs'] = "no"
 
