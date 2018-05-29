@@ -14,6 +14,6 @@ recipe           "openvas::openvasknife", "Install Perl cmd-line utility openvas
 recipe           "openvas::scan_single_target", "Used openvasknife to scan a target."
 recipe           "openvas::server", "Install the OpenVAS server."
 
-%w{ apt perl ark checkinstall ubuntu openvas }.each do |cb|
+%w{ apt perl ark checkinstall ubuntu }.each do |cb|
   depends cb
 end
