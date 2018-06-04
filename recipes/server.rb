@@ -110,7 +110,7 @@ execute "openvas-mkcert" do
   command "openvas-mkcert -q"
   action :run
   not_if "test -e /var/lib/openvas/CA/cacert.pem"
-  notifies :start, "service[greenbone-security-assistant]"
+  notifies :start, "service[openvas-gsa]"
 end
 
 # Create /var/lib/openvas/plugins
@@ -310,7 +310,7 @@ template "/etc/openvas/gsad_log.conf" do
   group "root"
   mode "0644"
   not_if "test -f /etc/openvas/gsad_log.conf"
-  notifies :restart, "service[greenbone-security-assistant]"
+  notifies :restart, "service[openvas-gsa]"
 end
 
 # Add template for /etc/openvas/openvasad_log.conf
