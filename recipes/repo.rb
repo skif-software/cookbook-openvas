@@ -28,11 +28,11 @@ if node['platform'] == 'debian' or node['platform'] == 'ubuntu' or node['platfor
 
   # Add OpenVAS ubuntu PPA. Get key from keyserver
   apt_repository "openvas-repo-other" do
-    uri node["openvas"]["openvas-repo-uri"] != '' ? node["openvas"]["openvas-repo-uri"] : "http://ppa.launchpad.net/openvas/openvas6/ubuntu"
+    uri node["openvas"]["openvas-repo-uri"] != '' ? node["openvas"]["openvas-repo-uri"] : "http://ppa.launchpad.net/mrazavi/openvas/ubuntu"
     distribution node['lsb']['codename']
     components ['main']
     keyserver node["openvas"]["openvas-repo-keyserver"] != '' ? node["openvas"]["openvas-repo-keyserver"] : "hkp://keyserver.ubuntu.com"
-    key node["openvas"]["openvas-repo-key"] != '' ? node["openvas"]["openvas-repo-key"] : "b8942c54a667d61a"
+    key node["openvas"]["openvas-repo-key"] != '' ? node["openvas"]["openvas-repo-key"] : "CF38C8D889ADEAC0265E36983C453D244AA450E0"
     action :add
     only_if { node['platform'] == 'ubuntu' || node['platform'] == 'linuxmint' }
     end
